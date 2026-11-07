@@ -1,0 +1,20 @@
+{
+  "name": "claude-worker-mcp",
+  "version": "0.1.0",
+  "description": "A local MCP control plane for Claude to delegate coding work to Codex CLI with OpenCode fallback.",
+  "type": "module",
+  "bin": {
+    "claude-worker-mcp": "src/server.mjs"
+  },
+  "files": ["src/", "skills/", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check src/server.mjs && node --check src/worker.mjs && node --check src/store.mjs && node --check src/providers.mjs && node --check src/rpc-peer.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "license": "MIT"
+}
