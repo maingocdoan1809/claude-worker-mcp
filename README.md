@@ -2,6 +2,8 @@
 
 A local [MCP](https://modelcontextprotocol.io/) server for Claude Code to assign work to **Codex CLI**, observe it, resume a session, verify the result, and fall back to **OpenCode** when a Codex attempt fails. A bundled Claude skill describes the supervisor workflow. The MCP works across projects; jobs and logs live in a user state directory, not in the target repository.
 
+For Claude Desktop chat, the server also advertises a `delegate-work` MCP prompt and workflow instructions. The local skill directory is used by Claude Code and by Claude Desktop's Code tab; Desktop chat reads the MCP prompt instead.
+
 Codex uses its app-server protocol; OpenCode uses ACP. Both protocols keep a live session so permission requests can pause the worker and reach Claude through MCP. This is an independent project, informed by [Excel Partner](https://github.com/maingocdoan1809/excel-partner) and [OpenAI's Codex plugin for Claude Code](https://github.com/openai/codex-plugin-cc). It does not copy or depend on either project.
 
 ## Requirements
@@ -23,6 +25,25 @@ claude mcp get claude-worker
 ```
 
 Restart Claude Code after adding the skill. Ask Claude to use `delegate-work`, or ask it to coordinate Codex on a coding task. No API key is stored by this MCP; each provider uses its own CLI login.
+
+Claude Desktop chat has a separate local MCP configuration. On Linux, add this entry to `~/.config/Claude/claude_desktop_config.json` under `mcpServers`, using the paths on your machine, then restart Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "claude-worker": {
+      "command": "/absolute/path/to/node",
+      "args": ["/absolute/path/to/claude-worker-mcp/src/server.mjs"],
+      "env": {
+        "CLAUDE_WORKER_CODEX_BIN": "/absolute/path/to/codex",
+        "CLAUDE_WORKER_OPENCODE_BIN": "/absolute/path/to/opencode"
+      }
+    }
+  }
+}
+```
+
+Merge the `mcpServers` entry into your existing config instead of replacing other settings. The Desktop Code tab uses the Claude Code setup above. Desktop chat can use the server's `delegate-work` MCP prompt.
 
 To let Claude handle the worker conversation without prompting you for each MCP call, add `"mcp__claude-worker__*"` to `permissions.allow` in your **user** `~/.claude/settings.json`. Claude still sees every worker permission request and answers it through `respond_request`; this setting only authorizes Claude to call the MCP tools. Keep the skill's scope rules in your Claude instructions.
 

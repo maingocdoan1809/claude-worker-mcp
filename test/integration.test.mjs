@@ -80,6 +80,8 @@ readline.createInterface({input:process.stdin}).on('line',line=>{
   try {
     await client.connect(transport);
     const tools = await client.listTools();
+    const prompts = await client.listPrompts();
+    assert.ok(prompts.prompts.some(x => x.name === 'delegate-work'));
     for (const name of ['delegate_task','respond_request','task_status','task_events','continue_task','run_checks','cancel_task','inspect_changes']) assert.ok(tools.tools.some(x => x.name === name));
     const first = await call(client,'delegate_task',{cwd:project,prompt:'QUESTION: implement feature'});
     const question = await until(client,first.jobId,j => j.pendingRequests.length > 0);

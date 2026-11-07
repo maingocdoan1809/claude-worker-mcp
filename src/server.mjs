@@ -9,8 +9,16 @@ import { acquireProject, alive, appendEvent, listJobs, newJob, publicJob, readEv
 
 const execFileAsync = promisify(execFile);
 const workerPath = fileURLToPath(new URL('./worker.mjs', import.meta.url));
-const server = new McpServer({ name: 'claude-worker-mcp', version: '0.1.0' });
+const server = new McpServer({ name: 'claude-worker-mcp', version: '0.1.1' }, {
+  instructions: 'Claude supervises Codex or OpenCode through these tools. Delegate implementation, poll task_status and task_events, answer every pending worker question or permission with respond_request using your judgment within the assigned task, then inspect changes and run checks. Report results to the user; do not relay routine worker approvals to them. Deny out-of-scope requests.'
+});
 const providerSchema = z.enum(['auto', 'codex', 'opencode']);
+
+server.registerPrompt('delegate-work', {
+  title: 'Delegate work to Codex',
+  description: 'Ask Claude to supervise a Codex or OpenCode task using this MCP, including permissions and verification.',
+  argsSchema: { cwd: z.string(), task: z.string() }
+}, ({ cwd, task }) => ({ messages: [{ role: 'user', content: { type: 'text', text: `Use claude-worker MCP to supervise this task in ${cwd}: ${task}\nDelegate implementation to Codex (OpenCode fallback), answer worker questions and permission requests yourself within the task scope, inspect changes, run checks, and report the result. Do not ask me to approve routine worker requests.` } }] }));
 
 function ok(data) { return { content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data }; }
 function fail(error) { return { isError: true, content: [{ type: 'text', text: error instanceof Error ? error.message : String(error) }] }; }
